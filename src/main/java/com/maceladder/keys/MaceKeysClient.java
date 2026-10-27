@@ -11,13 +11,13 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import java.lang.reflect.Field;
 
 /**
  * Client side of the Mace Ladder server.
- *  - Sky key (default Z, changeable in Controls) -> "/trigger mace.sky"   (Amethyst mace and up)
- *  - Dash key (default `, changeable in Controls) -> "/trigger mace.dash"  (Gold mace and up)
- *  - Pressing jump again in the air            -> "/trigger mace.djump" (Diamond mace and up)
- * The server (datapack) decides if it is allowed and does the actual jump / teleport.
+ *  - Sky key (default Z)   -> "/trigger mace.sky"   (Amethyst mace and up)
+ *  - Dash key (default `)  -> "/trigger mace.dash"  (Gold mace and up)
+ *  - Double jump in air    -> "/trigger mace.djump" (Diamond mace and up)
  */
 public class MaceKeysClient implements ClientModInitializer {
     private static final String[] MODELS = {
@@ -25,14 +25,28 @@ public class MaceKeysClient implements ClientModInitializer {
         "iron_mace", "redstone_mace", "diamond_mace", "emerald_mace", "netherite_mace", "amethyst_mace", "god_mace"
     };
     private static final int DASH_TIER = 5, DOUBLE_JUMP_TIER = 9, SKY_TIER = 12;
-    /** The server only allows a double jump after 3 ticks in the air, so wait for that here too. */
     private static final int MIN_AIR_TICKS = 4;
 
     private static KeyMapping skyKey;
     private static KeyMapping dashKey;
+    private static Field screenField;
+    
     private boolean jumpWasDown = false;
     private boolean doubleJumpUsed = false;
     private int airTicks = 0;
+
+    static {
+        // Reflectively cache the screen field to be completely safe across different mapping layers
+        try {
+            for (Field f : Minecraft.class.getDeclaredFields()) {
+                if (f.getType().getName().contains("Screen") || f.getName().equals("screen")) {
+                    f.setAccessible(true);
+                    screenField = f;
+                    break;
+                }
+            }
+        } catch (Exception ignored) {}
+    }
 
     @Override
     public void onInitializeClient() {
@@ -64,9 +78,9 @@ public class MaceKeysClient implements ClientModInitializer {
         } else {
             airTicks++;
         }
-        if (jumpDown && !jumpWasDown && !onGround && !doubleJumpUsed && tier >= DOUBLE_JUMP_TIER
-&& airTicks >= MIN_AIR_TICKS && mc.currentScreen == null && !mc.player.isInWater()
 
+        if (jumpDown && !jumpWasDown && !onGround && !doubleJumpUsed && tier >= DOUBLE_JUMP_TIER
+                && airTicks >= MIN_AIR_TICKS && isScreenNull(mc) && !mc.player.isInWater()
                 && !mc.player.getAbilities().flying && !mc.player.isFallFlying()) {
             mc.player.connection.sendCommand("trigger mace.djump");
             doubleJumpUsed = true;
@@ -74,7 +88,15 @@ public class MaceKeysClient implements ClientModInitializer {
         jumpWasDown = jumpDown;
     }
 
-    /** Highest mace tier in the inventory (-1 if none), read from the item model the server gives. */
+    private boolean isScreenNull(Minecraft mc) {
+        if (screenField == null) return true;
+        try {
+            return screenField.get(mc) == null;
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
     private static int tier(Player player) {
         int best = -1;
         Inventory inv = player.getInventory();
