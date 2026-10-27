@@ -12,11 +12,12 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      # We specify a stable Gradle version here since the wrapper script is missing
+      # Upgraded Gradle version to match Fabric Loom's requirement
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.10'
+          gradle-version: '9.5'
 
+      # We keep using global fallback since the repository lacks gradlew wrappers
       - name: Build with Global Gradle
         run: |
           F=$(find . -name build.gradle -not -path './.git/*' | head -1)
