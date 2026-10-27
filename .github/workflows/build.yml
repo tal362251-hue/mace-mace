@@ -7,22 +7,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Setup Java (Using Java 21, the modern standard for recent Minecraft versions)
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      # 2. Setup Gradle (This action automatically handles caching)
+      # We specify a stable Gradle version here since the wrapper script is missing
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10'
 
-      # 3. Grant execute permissions to the wrapper and run the build
-      - name: Build with Gradle Wrapper
+      - name: Build with Global Gradle
         run: |
-          chmod +x gradlew
-          ./gradlew build --no-daemon
+          F=$(find . -name build.gradle -not -path './.git/*' | head -1)
+          if [ -z "$F" ]; then echo "NO build.gradle FOUND"; exit 1; fi
+          cd "$(dirname "$F")"
+          gradle build --no-daemon
 
-      # 4. Upload the compiled jar artifact
       - uses: actions/upload-artifact@v4
         with:
           name: mace-keys-mod
