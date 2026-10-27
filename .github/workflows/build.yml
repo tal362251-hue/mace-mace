@@ -1,23 +1,28 @@
 name: build
 on: [push, workflow_dispatch]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # 1. Setup Java (Using Java 21, the modern standard for recent Minecraft versions)
       - uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 25
+          distribution: 'temurin'
+          java-version: '21'
+
+      # 2. Setup Gradle (This action automatically handles caching)
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: 9.6.1
-      - name: Build
+
+      # 3. Grant execute permissions to the wrapper and run the build
+      - name: Build with Gradle Wrapper
         run: |
-          F=$(find . -name settings.gradle -not -path './.git/*' | head -1)
-          if [ -z "$F" ]; then echo "NO settings.gradle FOUND"; find . -not -path './.git/*' | head -60; exit 1; fi
-          cd "$(dirname "$F")"
-          gradle build --no-daemon
+          chmod +x gradlew
+          ./gradlew build --no-daemon
+
+      # 4. Upload the compiled jar artifact
       - uses: actions/upload-artifact@v4
         with:
           name: mace-keys-mod
