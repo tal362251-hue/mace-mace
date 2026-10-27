@@ -7,7 +7,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Upgraded to Java 25 to match the mod's configuration requirements
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -17,13 +16,13 @@ jobs:
         with:
           gradle-version: '9.5.0'
 
-      # Build fallback remains active for missing wrappers
+      # Modified: Using proper Fabric Loom remapping compilation sequence
       - name: Build with Global Gradle
         run: |
           F=$(find . -name build.gradle -not -path './.git/*' | head -1)
           if [ -z "$F" ]; then echo "NO build.gradle FOUND"; exit 1; fi
           cd "$(dirname "$F")"
-          gradle build --no-daemon
+          gradle remapJar --no-daemon
 
       - uses: actions/upload-artifact@v4
         with:
