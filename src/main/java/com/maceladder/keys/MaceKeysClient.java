@@ -65,7 +65,8 @@ public class MaceKeysClient implements ClientModInitializer {
             airTicks++;
         }
         if (jumpDown && !jumpWasDown && !onGround && !doubleJumpUsed && tier >= DOUBLE_JUMP_TIER
-                && airTicks >= MIN_AIR_TICKS && mc.screen == null && !mc.player.isInWater()
+&& airTicks >= MIN_AIR_TICKS && mc.currentScreen == null && !mc.player.isInWater()
+
                 && !mc.player.getAbilities().flying && !mc.player.isFallFlying()) {
             mc.player.connection.sendCommand("trigger mace.djump");
             doubleJumpUsed = true;
