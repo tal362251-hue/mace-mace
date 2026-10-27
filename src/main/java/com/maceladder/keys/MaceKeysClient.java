@@ -11,7 +11,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import org.lwjgl.glfw.GLFW;
 
 /**
  * Client side of the Mace Ladder server.
@@ -42,7 +41,7 @@ public class MaceKeysClient implements ClientModInitializer {
         skyKey = KeyMappingHelper.registerKeyMapping(
                 new KeyMapping("key.macekeys.sky", InputConstants.KEY_Z, category));
         dashKey = KeyMappingHelper.registerKeyMapping(
-                new KeyMapping("key.macekeys.dash", GLFW.GLFW_KEY_GRAVE_ACCENT, category));
+                new KeyMapping("key.macekeys.dash", InputConstants.KEY_GRAVE, category));
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
     }
 
