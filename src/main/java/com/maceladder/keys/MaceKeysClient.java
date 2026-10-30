@@ -13,11 +13,10 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec3;
 
 /**
  * Client side of the Mace Ladder server.
- *  - ` (backtick)  -> Gold mace and up: dash forward (10 s cooldown, no hunger cost, not while gliding)
+ *  - ` (backtick)  -> Gold mace and up: dash forward (3 s cooldown, no hunger cost, not while gliding; the SERVER moves you)
  *  - R             -> Iron mace and up: parry
  *  - Z             -> Amethyst mace and up: sky jump
  * All keys are changeable in Controls. The server (datapack) enforces the rules.
@@ -28,8 +27,7 @@ public class MaceKeysClient implements ClientModInitializer {
         "iron_mace", "redstone_mace", "diamond_mace", "emerald_mace", "netherite_mace", "amethyst_mace", "god_mace"
     };
     private static final int DASH_TIER = 5, PARRY_TIER = 7, SKY_TIER = 12;
-    private static final int DASH_COOLDOWN_TICKS = 200;   // 10 seconds
-    private static final double DASH_SPEED = 2.5;         // a bit stronger than Lunge 3
+    private static final int DASH_COOLDOWN_TICKS = 60;   // 3 seconds
 
     private static KeyMapping dashKey, parryKey, skyKey;
     private int dashCooldown = 0;
@@ -57,8 +55,6 @@ public class MaceKeysClient implements ClientModInitializer {
 
         while (dashKey.consumeClick()) {
             if (tier >= DASH_TIER && dashCooldown == 0 && !mc.player.isFallFlying() && !mc.player.hasEffect(MobEffects.SLOWNESS)) {
-                Vec3 look = mc.player.getLookAngle();
-                mc.player.setDeltaMovement(look.x * DASH_SPEED, look.y * DASH_SPEED * 0.6 + 0.2, look.z * DASH_SPEED);
                 dashCooldown = DASH_COOLDOWN_TICKS;
                 mc.player.connection.sendCommand("trigger mace.dash");
             }
